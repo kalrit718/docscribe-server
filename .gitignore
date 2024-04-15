@@ -1,3 +1,4 @@
 .MLAPIEnv/
 __pycache__/
 *.bin
+.env
