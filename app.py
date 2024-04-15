@@ -44,7 +44,7 @@ def test():
 
 @app.route("/generate")
 def generate():
-  input_method = request.args.get('input_method')
+  # input_method = request.args.get('input_method')
   # generated_text = gen_comment(input_method)
   generated_text = "Handwritten Output!"
 
