@@ -1,4 +1,5 @@
 from flask import Flask, request
+from services.database_service import DatabaseService
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, RobertaConfig, RobertaModel
@@ -6,6 +7,8 @@ from model import Seq2Seq
 from run import convert_examples_to_features, Example
 
 app = Flask(__name__)
+
+databaseService = DatabaseService()
 
 source_length = 256
 target_length = 256
@@ -51,7 +54,6 @@ def generate():
   else:
     return "Bad request", 400
   
-
 def prep_input(method):
   examples = [
      Example(0, source = method, target = "")
@@ -83,6 +85,23 @@ def gen_comment(method):
       t = t[:t.index(0)]
     text = tokenizer.decode(t,clean_up_tokenization_spaces=False)
     return text
+  
+@app.route("/add_diagnostics", methods=['POST'])
+def add_diagnostics():
+  username = request.args.get('username')
+  data = request.args.get('data')
+
+  try:
+    inserted_id = databaseService.insert_record(username, data)
+    if inserted_id:
+      return {
+        "inserted_id": str(inserted_id)
+      }, 200
+    else:
+      return "Bad request", 400
+  except Exception as e:
+    print(e)
+    return "Bad request", 400
 
 if __name__ == "__main__":
     app.run(debug=True)
