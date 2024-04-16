@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request
 from services.database_service import DatabaseService
 import torch
@@ -25,11 +26,14 @@ model = Seq2Seq(encoder = encoder,decoder = decoder,config=config,
                 beam_size=beam_size,max_length=target_length,
                 sos_id=tokenizer.cls_token_id,eos_id=tokenizer.sep_token_id)
 
-checkpoint_path = "pytorch_model.bin"
+if not app.debug:
+  checkpoint_url = os.environ.get("MODEL_URL")
+  model.load_state_dict(torch.hub.load_state_dict_from_url(checkpoint_url, map_location=device))
+else:
+  checkpoint_path = "pytorch_model.bin"
+  checkpoint = torch.load(checkpoint_path, map_location=device)
+  model.load_state_dict(checkpoint)
 
-checkpoint = torch.load(checkpoint_path, map_location=device)
-
-model.load_state_dict(checkpoint)
 model.to("cpu")
 
 class Args:
@@ -104,4 +108,4 @@ def add_diagnostics():
     return "Bad request", 400
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
